@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, Image, ImageBackground, SectionList } from 'react-native';
-import GameCard from './components/GameCard';
+import DiaCard from './components/DiaCard';
 import dados from './assets/dados.json'
 
 export default function App() {
@@ -50,20 +50,8 @@ export default function App() {
         keyExtractor={(item, index) => item + index}
         renderItem={() => null}
         renderSectionHeader={({ section }) => (
-          <View style={styles.card} >
-
-            <Text style={styles.data}>{formatarData(section.title)}</Text>
-              {
-                section.data.map((jogo) => (
-                  <GameCard key={jogo.id} game={jogo} />
-                ))
-              }
-
-
-
-          </View>
-        )
-        }
+          <DiaCard data={formatarData(section.title)} jogos={section.data} />
+        )}
 
 
       />
@@ -91,20 +79,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: 'white',
   },
-  card: {
-    marginTop: 20,
-    backgroundColor: '#0c1b2a',
-    width: 320,
-    borderRadius: 12,
-    padding: 15,
-  },
-  data: {
-    color: '#f2cc2f',
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 10
-  },
-
   jogo: {
     marginBottom: 20,
     borderBottomWidth: 1,
