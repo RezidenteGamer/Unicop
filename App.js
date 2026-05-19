@@ -1,31 +1,12 @@
 import { StyleSheet, Text, View, Image, ImageBackground, SectionList } from 'react-native';
 import DiaCard from './components/DiaCard';
+import { formatarData } from './utils/formatarData';
+import { agruparPorData } from './utils/agruparPorData';
 import dados from './assets/dados.json'
 
 export default function App() {
 
   const jogos = dados.jogos
-
-  const formatarData = (dataStr) => {
-    const [ano, mes, dia] = dataStr.split('-')
-    return `${dia}/${mes}`
-  }
-
-  const agruparPorData = (jogos) => {
-    return jogos.reduce((acc, jogo) => {
-
-      const data = jogo.data_brasilia
-
-      if (!acc[data]) {
-        acc[data] = []
-      }
-
-      acc[data].push(jogo)
-
-      return acc
-
-    }, {})
-  }
 
   const jogosAgrupados = agruparPorData(jogos)
 
@@ -52,8 +33,6 @@ export default function App() {
         renderSectionHeader={({ section }) => (
           <DiaCard data={formatarData(section.title)} jogos={section.data} />
         )}
-
-
       />
 
     </ImageBackground>
@@ -78,11 +57,5 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
     color: 'white',
-  },
-  jogo: {
-    marginBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#1e2d3d',
-    paddingBottom: 15
   },
 });
