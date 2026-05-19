@@ -1,7 +1,7 @@
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import flags from './flags';
 
-export default function GameCard({ game }) {
+export default function GameCard({ game, favorito, onToggleFavorito }) {
 
     const flagCasa = flags[game.sigla_casa];
     const flagFora = flags[game.sigla_fora];
@@ -10,9 +10,16 @@ export default function GameCard({ game }) {
     return (
         <View style={[styles.jogo, ehJogoBrasil && styles.jogoBrasil]}>
 
-            {ehJogoBrasil && (
-                <Text style={styles.labelBrasil}>JOGO DO BRASIL</Text>
-            )}
+            <View style={styles.cabecalho}>
+                {ehJogoBrasil && (
+                    <Text style={styles.labelBrasil}>JOGO DO BRASIL</Text>
+                )}
+                <TouchableOpacity onPress={onToggleFavorito} style={styles.estrela}>
+                    <Text style={[styles.estrelaTexto, favorito && styles.estrellaAtiva]}>
+                        {favorito ? '★' : '☆'}
+                    </Text>
+                </TouchableOpacity>
+            </View>
 
             <Text style={styles.grupo}>
                 GRUPO {game.grupo}  {game.confronto}
@@ -64,12 +71,28 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         borderBottomColor: '#009c3b',
     },
+    cabecalho: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 4,
+    },
     labelBrasil: {
         color: '#009c3b',
         fontSize: 10,
         fontWeight: 'bold',
         letterSpacing: 1,
-        marginBottom: 6,
+    },
+    estrela: {
+        marginLeft: 'auto',
+        padding: 4,
+    },
+    estrelaTexto: {
+        fontSize: 20,
+        color: '#8fa3b8',
+    },
+    estrellaAtiva: {
+        color: '#f2cc2f',
     },
     grupo: {
         color: '#8fa3b8',

@@ -2,7 +2,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import GameCard from './GameCard';
 import { formatarData } from '../utils/formatarData';
 
-export default function DiaCard({ data, jogos }) {
+export default function DiaCard({ data, jogos, favoritos, onToggleFavorito }) {
     const hoje = new Date().toISOString().split('T')[0];
     const ehHoje = data === hoje;
 
@@ -13,7 +13,12 @@ export default function DiaCard({ data, jogos }) {
                 {formatarData(data)}
             </Text>
             {jogos.map((jogo) => (
-                <GameCard key={jogo.id} game={jogo} />
+                <GameCard
+                    key={jogo.id}
+                    game={jogo}
+                    favorito={favoritos?.includes(jogo.id)}
+                    onToggleFavorito={() => onToggleFavorito(jogo.id)}
+                />
             ))}
         </View>
     );

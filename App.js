@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View, Image, ImageBackground, SectionList } from 'react-native';
+import { useState } from 'react';
 import DiaCard from './components/DiaCard';
 import { agruparPorData } from './utils/agruparPorData';
 import dados from './assets/dados.json'
@@ -6,6 +7,13 @@ import dados from './assets/dados.json'
 export default function App() {
 
   const jogos = dados.jogos
+  const [favoritos, setFavoritos] = useState([])
+
+  const toggleFavorito = (id) => {
+    setFavoritos(prev =>
+      prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id]
+    )
+  }
 
   const jogosAgrupados = agruparPorData(jogos)
 
@@ -30,7 +38,12 @@ export default function App() {
         keyExtractor={(item, index) => item + index}
         renderItem={() => null}
         renderSectionHeader={({ section }) => (
-          <DiaCard data={section.title} jogos={section.data} />
+          <DiaCard
+            data={section.title}
+            jogos={section.data}
+            favoritos={favoritos}
+            onToggleFavorito={toggleFavorito}
+          />
         )}
       />
 
