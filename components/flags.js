@@ -58,13 +58,13 @@ const flags = {
 
   // Grupo J
   ARG: require('../assets/jogos/argentina.png'),
-  ALG: require('../assets/jogos/algeria.png'),
+  ALG: require('../assets/jogos/Algeria.png'),
   AUT: require('../assets/jogos/austria.png'),
   JOR: require('../assets/jogos/jordan.png'),
 
   // Grupo K
   POR: require('../assets/jogos/portugal.png'),
-  COD: require('../assets/jogos/dr congo.png'),
+  COD: require('../assets/jogos/democratic republic of congo.png'),
   UZB: require('../assets/jogos/uzbekistan.png'),
   COL: require('../assets/jogos/colombia.png'),
 
