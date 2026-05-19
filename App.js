@@ -1,6 +1,5 @@
 import { StyleSheet, Text, View, Image, ImageBackground, SectionList } from 'react-native';
 import DiaCard from './components/DiaCard';
-import { formatarData } from './utils/formatarData';
 import { agruparPorData } from './utils/agruparPorData';
 import dados from './assets/dados.json'
 
@@ -31,7 +30,7 @@ export default function App() {
         keyExtractor={(item, index) => item + index}
         renderItem={() => null}
         renderSectionHeader={({ section }) => (
-          <DiaCard data={formatarData(section.title)} jogos={section.data} />
+          <DiaCard data={section.title} jogos={section.data} />
         )}
       />
 
