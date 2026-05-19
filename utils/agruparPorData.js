@@ -1,5 +1,5 @@
 export const agruparPorData = (jogos) => {
-    return jogos.reduce((acc, jogo) => {
+    const agrupado = jogos.reduce((acc, jogo) => {
         const data = jogo.data_brasilia
 
         if (!acc[data]) {
@@ -10,4 +10,10 @@ export const agruparPorData = (jogos) => {
 
         return acc
     }, {})
+
+    Object.keys(agrupado).forEach(data => {
+        agrupado[data].sort((a, b) => a.hora_brasilia.localeCompare(b.hora_brasilia))
+    })
+
+    return agrupado
 }
