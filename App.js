@@ -6,6 +6,11 @@ export default function App() {
 
   const jogos = dados.jogos
 
+  const formatarData = (dataStr) => {
+    const [ano, mes, dia] = dataStr.split('-')
+    return `${dia}/${mes}`
+  }
+
   const agruparPorData = (jogos) => {
     return jogos.reduce((acc, jogo) => {
 
@@ -47,7 +52,7 @@ export default function App() {
         renderSectionHeader={({ section }) => (
           <View style={styles.card} >
 
-            <Text style={styles.data}> {section.title} </Text>
+            <Text style={styles.data}>{formatarData(section.title)}</Text>
               {
                 section.data.map((jogo) => (
                   <GameCard key={jogo.id} game={jogo} />
