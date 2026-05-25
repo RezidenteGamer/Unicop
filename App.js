@@ -1,296 +1,71 @@
-import { StyleSheet, Text, View, Image, ImageBackground, SectionList, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
 import { useState, useEffect } from 'react';
-import DiaCard from './components/DiaCard';
-import { agruparPorData } from './utils/agruparPorData';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { supabase } from './lib/supabase';
-import dados from './assets/dados.json'
+import HomeScreen from './screens/HomeScreen';
+import LoginScreen from './screens/LoginScreen';
 
-const GRUPOS = [null, 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L']
+const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
+
+function MainTabs() {
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: false,
+        tabBarStyle: { backgroundColor: '#0c1b2a', borderTopColor: '#1e2d3d', height: 56 },
+        tabBarActiveTintColor: '#f2cc2f',
+        tabBarInactiveTintColor: '#8fa3b8',
+        tabBarLabelStyle: { fontSize: 12, fontWeight: '600', marginBottom: 6 },
+      }}
+    >
+      <Tab.Screen
+        name="Calendário"
+        component={HomeScreen}
+        options={{ tabBarLabel: '📅 Calendário' }}
+      />
+    </Tab.Navigator>
+  )
+}
 
 export default function App() {
-
-  const [jogos, setJogos] = useState([])
-  const [favoritos, setFavoritos] = useState([])
-  const [grupoSelecionado, setGrupoSelecionado] = useState(null)
-  const [importando, setImportando] = useState(false)
-  const [carregando, setCarregando] = useState(true)
+  const [user, setUser] = useState(null)
+  const [verificando, setVerificando] = useState(true)
 
   useEffect(() => {
-    buscarJogos()
-    buscarFavoritos()
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null)
+      setVerificando(false)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
 
-  const buscarJogos = async () => {
-    setCarregando(true)
-    const { data, error } = await supabase
-      .from('jogos')
-      .select('*')
-
-    setCarregando(false)
-
-    if (error) {
-      console.error('Erro ao buscar jogos:', error.message)
-      setJogos([])
-      return
-    }
-
-    setJogos(data ?? [])
-  }
-
-  const buscarFavoritos = async () => {
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) return
-
-    const { data } = await supabase
-      .from('favoritos')
-      .select('jogo_id')
-      .eq('user_id', session.user.id)
-
-    if (data) setFavoritos(data.map(f => f.jogo_id))
-  }
-
-  const toggleFavorito = async (jogoId) => {
-    const ehFavorito = favoritos.includes(jogoId)
-
-    setFavoritos(prev =>
-      ehFavorito ? prev.filter(f => f !== jogoId) : [...prev, jogoId]
-    )
-
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) return
-
-    if (ehFavorito) {
-      await supabase
-        .from('favoritos')
-        .delete()
-        .eq('user_id', session.user.id)
-        .eq('jogo_id', jogoId)
-    } else {
-      await supabase
-        .from('favoritos')
-        .insert({ user_id: session.user.id, jogo_id: jogoId })
-    }
-  }
-
-  const importarJogos = async () => {
-    setImportando(true)
-    console.log('Iniciando importação...')
-
-    try {
-      const { error } = await supabase
-        .from('jogos')
-        .upsert(dados.jogos, { onConflict: 'id' })
-
-      setImportando(false)
-
-      if (error) {
-        console.error('Erro Supabase:', JSON.stringify(error))
-        Alert.alert('Erro', 'Não foi possível importar os jogos:\n' + error.message)
-      } else {
-        console.log('Importação concluída com sucesso!')
-        Alert.alert('Sucesso', `${dados.jogos.length} jogos importados para o banco com sucesso!`)
-        buscarJogos()
-      }
-    } catch (e) {
-      setImportando(false)
-      console.error('Exceção capturada:', e.message)
-      Alert.alert('Erro inesperado', e.message)
-    }
-  }
-
-  const jogosFiltrados = grupoSelecionado
-    ? jogos.filter(j => j.grupo === grupoSelecionado)
-    : jogos
-
-  const jogosAgrupados = agruparPorData(jogosFiltrados)
-
-  const jogosTratados = Object.keys(jogosAgrupados).map(data => {
-    return {
-      title: data,
-      data: jogosAgrupados[data]
-    }
-  })
-
-  if (carregando) {
+  if (verificando) {
     return (
-      <ImageBackground style={styles.container} source={require('./assets/bg-overlay.png')}>
-        <Image style={styles.logo} source={require('./assets/unicopa.png')} />
-        <Text style={styles.title}>CALENDÁRIO</Text>
-        <ActivityIndicator size="large" color="#f2cc2f" style={styles.loading} />
-        <Text style={styles.loadingTexto}>Buscando jogos...</Text>
-      </ImageBackground>
+      <View style={{ flex: 1, backgroundColor: '#040b13', justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#f2cc2f" />
+      </View>
     )
   }
 
   return (
-    <ImageBackground style={styles.container}
-      source={require('./assets/bg-overlay.png')}>
-      <Image style={styles.logo}
-        source={require('./assets/unicopa.png')}
-      />
-
-      <Text style={styles.title}>CALENDÁRIO</Text>
-
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.filtros}
-        contentContainerStyle={styles.filtrosConteudo}
-      >
-        {GRUPOS.map((grupo) => (
-          <TouchableOpacity
-            key={grupo ?? 'todos'}
-            style={[styles.filtroBtn, grupoSelecionado === grupo && styles.filtroBtnAtivo]}
-            onPress={() => setGrupoSelecionado(grupo)}
-          >
-            <Text style={[styles.filtroTexto, grupoSelecionado === grupo && styles.filtroTextoAtivo]}>
-              {grupo ? `Grupo ${grupo}` : 'Todos'}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-
-      <TouchableOpacity
-        style={[styles.importarBtn, importando && styles.importarBtnDesativado]}
-        onPress={importarJogos}
-        disabled={importando}
-      >
-        <Text style={styles.importarTexto}>
-          {importando ? 'Importando...' : '⬆ Importar Jogos para o Banco'}
-        </Text>
-      </TouchableOpacity>
-
-      {jogos.length === 0 ? (
-        <View style={styles.emptyCard}>
-          <Text style={styles.emptyIcone}>📭</Text>
-          <Text style={styles.emptyTitulo}>Nenhum jogo carregado</Text>
-          <Text style={styles.emptySubtitulo}>
-            Toque em "Importar Jogos para o Banco" para carregar os dados.
-          </Text>
-        </View>
-      ) : (
-        <SectionList
-          sections={jogosTratados}
-          keyExtractor={(item, index) => item + index}
-          renderItem={() => null}
-          renderSectionHeader={({ section }) => (
-            <DiaCard
-              data={section.title}
-              jogos={section.data}
-              favoritos={favoritos}
-              onToggleFavorito={toggleFavorito}
-            />
-          )}
-        />
-      )}
-
-    </ImageBackground>
-  );
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {user ? (
+          <Stack.Screen name="Main" component={MainTabs} />
+        ) : (
+          <>
+            <Stack.Screen name="Login" component={LoginScreen} />
+          </>
+        )}
+      </Stack.Navigator>
+    </NavigationContainer>
+  )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    height: '100%',
-    width: '100%',
-    backgroundColor: '#040b13',
-    alignItems: 'center',
-  },
-  logo: {
-    marginTop: 20,
-    width: 200,
-    height: 50,
-    resizeMode: 'contain'
-  },
-  title: {
-    marginTop: 10,
-    fontSize: 28,
-    fontWeight: '700',
-    color: 'white',
-  },
-  loading: {
-    marginTop: 60,
-  },
-  loadingTexto: {
-    color: '#8fa3b8',
-    marginTop: 12,
-    fontSize: 14,
-  },
-  filtros: {
-    marginTop: 12,
-    marginBottom: 4,
-    width: '100%',
-  },
-  filtrosConteudo: {
-    paddingHorizontal: 10,
-    gap: 8,
-    alignItems: 'center',
-  },
-  filtroBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#1e2d3d',
-    backgroundColor: '#0c1b2a',
-    height: 36,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  filtroBtnAtivo: {
-    borderColor: '#f2cc2f',
-    backgroundColor: '#1e2a00',
-  },
-  filtroTexto: {
-    color: '#8fa3b8',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  filtroTextoAtivo: {
-    color: '#f2cc2f',
-  },
-  importarBtn: {
-    marginTop: 8,
-    marginBottom: 4,
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#f2cc2f',
-    backgroundColor: '#1e2a00',
-  },
-  importarBtnDesativado: {
-    opacity: 0.5,
-  },
-  importarTexto: {
-    color: '#f2cc2f',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  emptyCard: {
-    marginTop: 60,
-    backgroundColor: '#0c1b2a',
-    width: 300,
-    borderRadius: 12,
-    padding: 30,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#1e2d3d',
-  },
-  emptyIcone: {
-    fontSize: 48,
-    marginBottom: 12,
-  },
-  emptyTitulo: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  emptySubtitulo: {
-    color: '#8fa3b8',
-    fontSize: 13,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-});
