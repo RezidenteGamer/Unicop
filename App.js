@@ -8,6 +8,7 @@ import HomeScreen from './screens/HomeScreen';
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import PalpitesScreen from './screens/PalpitesScreen';
+import RevisaoScreen from './screens/RevisaoScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -66,7 +67,10 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {user ? (
-          <Stack.Screen name="Main" component={MainTabs} />
+          <>
+            <Stack.Screen name="Main" component={MainTabs} />
+            <Stack.Screen name="Revisao" component={RevisaoScreen} options={{ presentation: 'modal', headerShown: false }} />
+          </>
         ) : (
           <>
             <Stack.Screen name="Login" component={LoginScreen} />
