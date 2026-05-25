@@ -17,6 +17,7 @@ export default function App() {
 
   useEffect(() => {
     buscarJogos()
+    buscarFavoritos()
   }, [])
 
   const buscarJogos = async () => {
@@ -36,10 +37,39 @@ export default function App() {
     setJogos(data ?? [])
   }
 
-  const toggleFavorito = (id) => {
+  const buscarFavoritos = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+
+    const { data } = await supabase
+      .from('favoritos')
+      .select('jogo_id')
+      .eq('user_id', session.user.id)
+
+    if (data) setFavoritos(data.map(f => f.jogo_id))
+  }
+
+  const toggleFavorito = async (jogoId) => {
+    const ehFavorito = favoritos.includes(jogoId)
+
     setFavoritos(prev =>
-      prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id]
+      ehFavorito ? prev.filter(f => f !== jogoId) : [...prev, jogoId]
     )
+
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+
+    if (ehFavorito) {
+      await supabase
+        .from('favoritos')
+        .delete()
+        .eq('user_id', session.user.id)
+        .eq('jogo_id', jogoId)
+    } else {
+      await supabase
+        .from('favoritos')
+        .insert({ user_id: session.user.id, jogo_id: jogoId })
+    }
   }
 
   const importarJogos = async () => {
