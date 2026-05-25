@@ -7,6 +7,7 @@ import { supabase } from './lib/supabase';
 import HomeScreen from './screens/HomeScreen';
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
+import PalpitesScreen from './screens/PalpitesScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -26,6 +27,11 @@ function MainTabs() {
         name="Calendário"
         component={HomeScreen}
         options={{ tabBarLabel: '📅 Calendário' }}
+      />
+      <Tab.Screen
+        name="Palpites"
+        component={PalpitesScreen}
+        options={{ tabBarLabel: '🎯 Palpites' }}
       />
     </Tab.Navigator>
   )
