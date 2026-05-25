@@ -1,5 +1,5 @@
-import { StyleSheet, Text, View, Image, ImageBackground, SectionList, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { useState } from 'react';
+import { StyleSheet, Text, View, Image, ImageBackground, SectionList, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { useState, useEffect } from 'react';
 import DiaCard from './components/DiaCard';
 import { agruparPorData } from './utils/agruparPorData';
 import { supabase } from './lib/supabase';
@@ -9,10 +9,32 @@ const GRUPOS = [null, 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'
 
 export default function App() {
 
-  const jogos = dados.jogos
+  const [jogos, setJogos] = useState([])
   const [favoritos, setFavoritos] = useState([])
   const [grupoSelecionado, setGrupoSelecionado] = useState(null)
   const [importando, setImportando] = useState(false)
+  const [carregando, setCarregando] = useState(true)
+
+  useEffect(() => {
+    buscarJogos()
+  }, [])
+
+  const buscarJogos = async () => {
+    setCarregando(true)
+    const { data, error } = await supabase
+      .from('jogos')
+      .select('*')
+
+    setCarregando(false)
+
+    if (error) {
+      console.error('Erro ao buscar jogos:', error.message)
+      setJogos([])
+      return
+    }
+
+    setJogos(data ?? [])
+  }
 
   const toggleFavorito = (id) => {
     setFavoritos(prev =>
@@ -32,6 +54,7 @@ export default function App() {
       Alert.alert('Erro', 'Não foi possível importar os jogos: ' + error.message)
     } else {
       Alert.alert('Sucesso', `${dados.jogos.length} jogos importados para o banco com sucesso!`)
+      buscarJogos()
     }
   }
 
@@ -47,6 +70,17 @@ export default function App() {
       data: jogosAgrupados[data]
     }
   })
+
+  if (carregando) {
+    return (
+      <ImageBackground style={styles.container} source={require('./assets/bg-overlay.png')}>
+        <Image style={styles.logo} source={require('./assets/unicopa.png')} />
+        <Text style={styles.title}>CALENDÁRIO</Text>
+        <ActivityIndicator size="large" color="#f2cc2f" style={styles.loading} />
+        <Text style={styles.loadingTexto}>Buscando jogos...</Text>
+      </ImageBackground>
+    )
+  }
 
   return (
     <ImageBackground style={styles.container}
@@ -86,19 +120,29 @@ export default function App() {
         </Text>
       </TouchableOpacity>
 
-      <SectionList
-        sections={jogosTratados}
-        keyExtractor={(item, index) => item + index}
-        renderItem={() => null}
-        renderSectionHeader={({ section }) => (
-          <DiaCard
-            data={section.title}
-            jogos={section.data}
-            favoritos={favoritos}
-            onToggleFavorito={toggleFavorito}
-          />
-        )}
-      />
+      {jogos.length === 0 ? (
+        <View style={styles.emptyCard}>
+          <Text style={styles.emptyIcone}>📭</Text>
+          <Text style={styles.emptyTitulo}>Nenhum jogo carregado</Text>
+          <Text style={styles.emptySubtitulo}>
+            Toque em "Importar Jogos para o Banco" para carregar os dados.
+          </Text>
+        </View>
+      ) : (
+        <SectionList
+          sections={jogosTratados}
+          keyExtractor={(item, index) => item + index}
+          renderItem={() => null}
+          renderSectionHeader={({ section }) => (
+            <DiaCard
+              data={section.title}
+              jogos={section.data}
+              favoritos={favoritos}
+              onToggleFavorito={toggleFavorito}
+            />
+          )}
+        />
+      )}
 
     </ImageBackground>
   );
@@ -122,6 +166,14 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
     color: 'white',
+  },
+  loading: {
+    marginTop: 60,
+  },
+  loadingTexto: {
+    color: '#8fa3b8',
+    marginTop: 12,
+    fontSize: 14,
   },
   filtros: {
     marginTop: 12,
@@ -169,5 +221,32 @@ const styles = StyleSheet.create({
     color: '#f2cc2f',
     fontSize: 13,
     fontWeight: '700',
+  },
+  emptyCard: {
+    marginTop: 60,
+    backgroundColor: '#0c1b2a',
+    width: 300,
+    borderRadius: 12,
+    padding: 30,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#1e2d3d',
+  },
+  emptyIcone: {
+    fontSize: 48,
+    marginBottom: 12,
+  },
+  emptyTitulo: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptySubtitulo: {
+    color: '#8fa3b8',
+    fontSize: 13,
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });
