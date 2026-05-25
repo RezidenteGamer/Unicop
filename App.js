@@ -9,6 +9,7 @@ import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import PalpitesScreen from './screens/PalpitesScreen';
 import RevisaoScreen from './screens/RevisaoScreen';
+import MeusPalpitesScreen from './screens/MeusPalpitesScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -33,6 +34,11 @@ function MainTabs() {
         name="Palpites"
         component={PalpitesScreen}
         options={{ tabBarLabel: '🎯 Palpites' }}
+      />
+      <Tab.Screen
+        name="MeusPalpites"
+        component={MeusPalpitesScreen}
+        options={{ tabBarLabel: '📋 Meus Palpites' }}
       />
     </Tab.Navigator>
   )
