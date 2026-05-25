@@ -44,17 +44,27 @@ export default function App() {
 
   const importarJogos = async () => {
     setImportando(true)
-    const { error } = await supabase
-      .from('jogos')
-      .upsert(dados.jogos, { onConflict: 'id' })
+    console.log('Iniciando importação...')
 
-    setImportando(false)
+    try {
+      const { error } = await supabase
+        .from('jogos')
+        .upsert(dados.jogos, { onConflict: 'id' })
 
-    if (error) {
-      Alert.alert('Erro', 'Não foi possível importar os jogos: ' + error.message)
-    } else {
-      Alert.alert('Sucesso', `${dados.jogos.length} jogos importados para o banco com sucesso!`)
-      buscarJogos()
+      setImportando(false)
+
+      if (error) {
+        console.error('Erro Supabase:', JSON.stringify(error))
+        Alert.alert('Erro', 'Não foi possível importar os jogos:\n' + error.message)
+      } else {
+        console.log('Importação concluída com sucesso!')
+        Alert.alert('Sucesso', `${dados.jogos.length} jogos importados para o banco com sucesso!`)
+        buscarJogos()
+      }
+    } catch (e) {
+      setImportando(false)
+      console.error('Exceção capturada:', e.message)
+      Alert.alert('Erro inesperado', e.message)
     }
   }
 
@@ -178,19 +188,23 @@ const styles = StyleSheet.create({
   filtros: {
     marginTop: 12,
     marginBottom: 4,
-    maxHeight: 40,
+    width: '100%',
   },
   filtrosConteudo: {
     paddingHorizontal: 10,
     gap: 8,
+    alignItems: 'center',
   },
   filtroBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
     borderColor: '#1e2d3d',
     backgroundColor: '#0c1b2a',
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   filtroBtnAtivo: {
     borderColor: '#f2cc2f',
